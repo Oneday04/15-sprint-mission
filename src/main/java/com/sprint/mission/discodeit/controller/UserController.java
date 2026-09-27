@@ -1,19 +1,19 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.data.UserDto;
-import com.sprint.mission.discodeit.dto.request.*;
-import com.sprint.mission.discodeit.dto.response.UserResponse;
-import com.sprint.mission.discodeit.dto.response.UserStatusResponse;
+import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
-import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,76 +22,95 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@RestController
-@RequestMapping("/api/user")
 @RequiredArgsConstructor
+@Controller
+@ResponseBody
+@RequestMapping("/api/user")
 public class UserController {
 
-    private static final List<String> ALLOWED_EXTENTIONS = List.of("jpg", "jpeg", "png");
     private final UserService userService;
     private final UserStatusService userStatusService;
-    private final AuthService authService;
 
     // 유저 생성
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserResponse> createUser(
-            @RequestPart("userCreateRequest") UserCreateRequest request,
-            @RequestPart(value = "profile", required = false) MultipartFile profile) throws IOException {
-
-        Optional<BinaryContentCreateRequest> profileRequest = (profile == null || profile.isEmpty())
-                ? Optional.empty()
-                : Optional.of(new BinaryContentCreateRequest(
-                profile.getOriginalFilename(),
-                profile.getContentType(),
-                profile.getBytes()
-        ));
-
-        User user = userService.create(request, profileRequest);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(UserResponse.from(user));
+    @RequestMapping(
+            path = "create",
+            consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}
+    )
+    public ResponseEntity<User> create(
+            @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
+            @RequestPart(value = "profile", required = false) MultipartFile profile
+    ) {
+        Optional<BinaryContentCreateRequest> profileRequest = Optional.ofNullable(profile)
+                .flatMap(this::resolveProfileRequest);
+        User createdUser = userService.create(userCreateRequest, profileRequest);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(createdUser);
     }
 
     // 유저 수정
-    @PatchMapping("/{userId}")
-    public ResponseEntity<UserResponse> updateUser(
-            @Valid @RequestBody UserUpdateRequest request, @PathVariable String userId) {
-        User user = userService.update(UUID.fromString(userId), request, Optional.empty());
-        return ResponseEntity.status((HttpStatus.ACCEPTED))
-                .body(UserResponse.from(user));
+    @RequestMapping(
+            path = "update",
+            consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}
+    )
+    public ResponseEntity<User> update(
+            @RequestParam("userId") UUID userId,
+            @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
+            @RequestPart(value = "profile", required = false) MultipartFile profile
+    ) {
+        Optional<BinaryContentCreateRequest> profileRequest = Optional.ofNullable(profile)
+                .flatMap(this::resolveProfileRequest);
+        User updatedUser = userService.update(userId, userUpdateRequest, profileRequest);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(updatedUser);
     }
+
 
     // 유저 삭제
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<UserResponse> deleteUser(@PathVariable("userId") UUID userId){
+    @RequestMapping(path = "delete")
+    public ResponseEntity<Void> delete(@RequestParam("userId") UUID userId) {
         userService.delete(userId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
-    // 유저 상태 변경
-    @PatchMapping("/{userId}/userStatus")
-    public ResponseEntity<UserStatusResponse> updateUserStatus(
-            @Valid @RequestBody UserStatusUpdateRequest request,
-            @PathVariable("userId") UUID userId) {
-
-        UserStatus userStatus = userStatusService.updateByUserId(userId, request);
-
-        return ResponseEntity.status(HttpStatus.ACCEPTED)
-                .body(UserStatusResponse.from(userStatus));
-    }
-
-    // 전체 조회
-    @GetMapping("/findAll")
-    public ResponseEntity<List<UserDto>> getUsers(){
+    // 유저 조회 (전체)
+    @RequestMapping(path = "findAll")
+    public ResponseEntity<List<UserDto>> findAll() {
         List<UserDto> users = userService.findAll();
-        return ResponseEntity.ok(users);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(users);
     }
 
-    // 로그인
-    @PostMapping("/login")
-    public ResponseEntity<UserResponse> login(
-            @Valid @RequestBody LoginRequest request) {
-        User user = authService.login(request);
-        return ResponseEntity.ok(UserResponse.from(user));
+    // 유저 상태 수정
+    @RequestMapping(path = "updateUserStatusByUserId")
+    public ResponseEntity<UserStatus> updateUserStatusByUserId(@RequestParam("userId") UUID userId,
+                                                               @RequestBody UserStatusUpdateRequest request) {
+        UserStatus updatedUserStatus = userStatusService.updateByUserId(userId, request);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(updatedUserStatus);
+    }
+
+
+    // 프로필 사진 (Optional로 슈뢰딩거화)
+    private Optional<BinaryContentCreateRequest> resolveProfileRequest(MultipartFile profileFile) {
+        if (profileFile.isEmpty()) {
+            return Optional.empty();
+        } else {
+            try {
+                BinaryContentCreateRequest binaryContentCreateRequest = new BinaryContentCreateRequest(
+                        profileFile.getOriginalFilename(),
+                        profileFile.getContentType(),
+                        profileFile.getBytes()
+                );
+                return Optional.of(binaryContentCreateRequest);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
