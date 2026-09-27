@@ -25,15 +25,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Controller
 @ResponseBody
-@RequestMapping("/api/message")
+@RequestMapping("/api/messages")
 public class MessageController {
     private final MessageService messageService;
 
     // 생성
-    @PostMapping(
-            path = "create",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Message> create(
             @RequestPart("messageCreateRequest") MessageCreateRequest request,
             @RequestPart(value = "attachments", required = false)List<MultipartFile> attachments
@@ -60,8 +57,8 @@ public class MessageController {
     }
 
     // 수정
-    @PatchMapping(path = "update")
-    public ResponseEntity<Message> updateMessage(
+    @PatchMapping(path = "{messageId}")
+    public ResponseEntity<Message> update(
             @RequestParam("messageId") UUID messageId,
             @Valid @RequestBody MessageUpdateRequest request) {
         Message message = messageService.update(messageId, request);
@@ -70,7 +67,7 @@ public class MessageController {
     }
 
     // 삭제
-    @DeleteMapping(path = "delete")
+    @DeleteMapping(path = "{messageId}")
     public ResponseEntity<Void> delete(
             @RequestParam("messageId") UUID messageId) {
         messageService.delete(messageId);
@@ -78,8 +75,8 @@ public class MessageController {
     }
 
     // 특정 채널 메시지 조회
-    @GetMapping("findAllByChannelId")
-    public ResponseEntity<List<Message>> findAllByChannelId(
+    @GetMapping
+    public ResponseEntity<List<Message>> findAll(
             @RequestParam("channelId") UUID channelId) {
         List<Message> messages = messageService.findAllByChannelId(channelId);
         return ResponseEntity.status(HttpStatus.OK).body(messages);

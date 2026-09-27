@@ -25,7 +25,7 @@ public class ReadStatusController {
     private final ReadStatusService readStatusService;
 
     // 메시지 수신정보 생성
-    @PostMapping(path = "create")
+    @PostMapping
     public ResponseEntity<ReadStatus> createReadStatus(@RequestBody ReadStatusCreateRequest request) {
         ReadStatus createdReadStatus = readStatusService.create(request);
         return ResponseEntity
@@ -34,7 +34,7 @@ public class ReadStatusController {
     }
 
     // 메시지 수신정보 수정
-    @RequestMapping(path = "update")
+    @PatchMapping(path = "{readStatusId}")
     public ResponseEntity<ReadStatus> update(@RequestParam("readStatusId") UUID readStatusId,
             @RequestBody ReadStatusUpdateRequest request) {
         ReadStatus readStatus = readStatusService.update(readStatusId, request);
@@ -43,8 +43,8 @@ public class ReadStatusController {
     }
 
     // 메시지 수신 정보 조회
-    @GetMapping(path = "findAllByUserid")
-    public ResponseEntity<List<ReadStatus>> findAllByUserId(@RequestParam("userId") UUID userId) {
+    @GetMapping
+    public ResponseEntity<List<ReadStatus>> findAllByUserId(@PathVariable("userId") UUID userId) {
         List<ReadStatus> readStatuses = readStatusService.findAllByUserId(userId);
         return ResponseEntity
                 .status(HttpStatus.OK)

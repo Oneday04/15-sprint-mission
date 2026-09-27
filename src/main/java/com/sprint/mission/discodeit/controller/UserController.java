@@ -25,17 +25,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Controller
 @ResponseBody
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
     private final UserStatusService userStatusService;
 
     // 유저 생성
-    @RequestMapping(
-            path = "create",
-            consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}
-    )
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<User> create(
             @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
             @RequestPart(value = "profile", required = false) MultipartFile profile
@@ -49,8 +46,8 @@ public class UserController {
     }
 
     // 유저 수정
-    @RequestMapping(
-            path = "update",
+    @PatchMapping(
+            path = "{userId}",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}
     )
     public ResponseEntity<User> update(
@@ -68,8 +65,8 @@ public class UserController {
 
 
     // 유저 삭제
-    @RequestMapping(path = "delete")
-    public ResponseEntity<Void> delete(@RequestParam("userId") UUID userId) {
+    @DeleteMapping(path = "{userId}")
+    public ResponseEntity<Void> delete(@PathVariable("userId") UUID userId) {
         userService.delete(userId);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
@@ -77,7 +74,7 @@ public class UserController {
     }
 
     // 유저 조회 (전체)
-    @RequestMapping(path = "findAll")
+    @GetMapping
     public ResponseEntity<List<UserDto>> findAll() {
         List<UserDto> users = userService.findAll();
         return ResponseEntity
@@ -86,7 +83,7 @@ public class UserController {
     }
 
     // 유저 상태 수정
-    @RequestMapping(path = "updateUserStatusByUserId")
+    @PatchMapping(path = "{userId}/userStatus")
     public ResponseEntity<UserStatus> updateUserStatusByUserId(@RequestParam("userId") UUID userId,
                                                                @RequestBody UserStatusUpdateRequest request) {
         UserStatus updatedUserStatus = userStatusService.updateByUserId(userId, request);
