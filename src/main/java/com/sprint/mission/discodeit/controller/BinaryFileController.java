@@ -22,7 +22,7 @@ public class BinaryFileController {
 
     // 단일 조회
     @GetMapping(path = "{binaryContentId}")
-    public ResponseEntity<BinaryContent> find(@RequestParam("binaryContentId") UUID binaryContentId) {
+    public ResponseEntity<BinaryContent> find(@PathVariable("binaryContentId") UUID binaryContentId) {
         BinaryContent binaryContent = binaryContentService.find(binaryContentId);
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -30,7 +30,7 @@ public class BinaryFileController {
     }
 
     // id 조회
-    @RequestMapping
+    @GetMapping
     public ResponseEntity<List<BinaryContent>> findAllByIdIn(
             @RequestParam("binaryContentIds") List<UUID> binaryContentIds) {
         List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(binaryContentIds);

@@ -35,7 +35,7 @@ public class ReadStatusController {
 
     // 메시지 수신정보 수정
     @PatchMapping(path = "{readStatusId}")
-    public ResponseEntity<ReadStatus> update(@RequestParam("readStatusId") UUID readStatusId,
+    public ResponseEntity<ReadStatus> update(@PathVariable("readStatusId") UUID readStatusId,
             @RequestBody ReadStatusUpdateRequest request) {
         ReadStatus readStatus = readStatusService.update(readStatusId, request);
         return ResponseEntity.status(HttpStatus.ACCEPTED)
@@ -44,7 +44,7 @@ public class ReadStatusController {
 
     // 메시지 수신 정보 조회
     @GetMapping
-    public ResponseEntity<List<ReadStatus>> findAllByUserId(@PathVariable("userId") UUID userId) {
+    public ResponseEntity<List<ReadStatus>> findAllByUserId(@RequestParam("userId") UUID userId) {
         List<ReadStatus> readStatuses = readStatusService.findAllByUserId(userId);
         return ResponseEntity
                 .status(HttpStatus.OK)

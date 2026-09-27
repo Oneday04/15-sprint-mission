@@ -27,44 +27,44 @@ public class ChannelController {
 
     // 채널 생성
     @PostMapping(path = "public")
-    public ResponseEntity<Channel> create(
-            @Valid @RequestBody PublicChannelCreateRequest request) {
-        Channel channel = channelService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(channel);
+    public ResponseEntity<Channel> create(@RequestBody PublicChannelCreateRequest request) {
+        Channel createdChannel = channelService.create(request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(createdChannel);
     }
 
     // 비공개 채널 생성
     @PostMapping(path = "private")
-    public ResponseEntity<Channel> create(
-            @Valid @RequestBody PrivateChannelCreateRequest request) {
-        Channel channel = channelService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(channel);
+    public ResponseEntity<Channel> create(@RequestBody PrivateChannelCreateRequest request) {
+        Channel createdChannel = channelService.create(request);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(createdChannel);
     }
 
     // 채널 수정
-    @PatchMapping(path = "channelId")
-    public ResponseEntity<Channel> update(
-            @RequestParam("channelId") UUID channelId,
-            @Valid @RequestBody PublicChannelUpdateRequest request) {
-        Channel channel = channelService.update(channelId, request);
-        return ResponseEntity.status(HttpStatus.ACCEPTED)
-                .body(channel);
+    @PatchMapping(path = "{channelId}")
+    public ResponseEntity<Channel> update(@PathVariable("channelId") UUID channelId,
+                                          @RequestBody PublicChannelUpdateRequest request) {
+        Channel udpatedChannel = channelService.update(channelId, request);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(udpatedChannel);
     }
 
     // 채널 삭제
-    @DeleteMapping(path = "channelId")
-    public ResponseEntity<ChannelResponse> delete(
-            @RequestParam("channelId") UUID channelId) {
+    @DeleteMapping(path = "{channelId}")
+    public ResponseEntity<Void> delete(@PathVariable("channelId") UUID channelId) {
         channelService.delete(channelId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
     // 전체 조회
     @GetMapping
-    public ResponseEntity<List<ChannelDto>> findAll(
-            @PathVariable("userId") UUID userId) {
+    public ResponseEntity<List<ChannelDto>> findAll(@RequestParam("userId") UUID userId) {
         List<ChannelDto> channels = channelService.findAllByUserId(userId);
         return ResponseEntity
                 .status(HttpStatus.OK)

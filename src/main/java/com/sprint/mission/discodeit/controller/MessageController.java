@@ -59,7 +59,7 @@ public class MessageController {
     // 수정
     @PatchMapping(path = "{messageId}")
     public ResponseEntity<Message> update(
-            @RequestParam("messageId") UUID messageId,
+            @PathVariable("messageId") UUID messageId,
             @Valid @RequestBody MessageUpdateRequest request) {
         Message message = messageService.update(messageId, request);
         return ResponseEntity.status(HttpStatus.ACCEPTED)
@@ -69,7 +69,7 @@ public class MessageController {
     // 삭제
     @DeleteMapping(path = "{messageId}")
     public ResponseEntity<Void> delete(
-            @RequestParam("messageId") UUID messageId) {
+            @PathVariable("messageId") UUID messageId) {
         messageService.delete(messageId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
